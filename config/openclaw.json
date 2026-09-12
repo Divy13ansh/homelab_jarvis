@@ -4,6 +4,13 @@
     "port": 18789,
     "bind": "lan",
     "trustedProxies": ["127.0.0.1/32", "::1/128", "172.16.0.0/12", "10.0.0.0/8"],
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789",
+        "https://jarvis.divy13ansh.in"
+      ]
+    },
     "auth": {
       "mode": "token",
       "token": {
