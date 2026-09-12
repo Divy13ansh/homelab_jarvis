@@ -1,0 +1,62 @@
+services:
+  jarvis:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        OPENCLAW_IMAGE: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest-browser}
+    image: jarvis:local
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_PORT:-18789}
+      JARVIS_ENV: ${JARVIS_ENV:-production}
+    volumes:
+      - openclaw-data:/home/node/.openclaw
+      - ./data/workspace:/workspace
+      - ./data/projects:/data/projects
+      - ./data/documents:/data/documents
+      - ./data/logs:/data/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./voice:/app/voice:ro
+    ports:
+      - "127.0.0.1:${OPENCLAW_GATEWAY_PORT:-18789}:${OPENCLAW_GATEWAY_PORT:-18789}"
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run --token ${CLOUDFLARED_TUNNEL_TOKEN}
+    depends_on:
+      jarvis:
+        condition: service_healthy
+    network_mode: service:jarvis
+
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    volumes:
+      - ./config/livekit.yaml:/etc/livekit.yaml:ro
+    network_mode: host
+    profiles: [selfhosted]
+
+  coturn:
+    image: coturn/coturn:latest
+    network_mode: host
+    volumes:
+      - ./config/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    profiles: [selfhosted]
+
+volumes:
+  openclaw-data:

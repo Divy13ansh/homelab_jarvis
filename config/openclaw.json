@@ -1,0 +1,47 @@
+{
+  "gateway": {
+    "port": 18789,
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": {
+        "source": "env",
+        "id": "OPENCLAW_GATEWAY_TOKEN"
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "azure": {
+        "apiKey": { "source": "env", "id": "AZURE_OPENAI_API_KEY" },
+        "baseUrl": "${AZURE_OPENAI_ENDPOINT}",
+        "apiVersion": "${AZURE_OPENAI_API_VERSION}"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": "azure/${AZURE_OPENAI_DEPLOYMENT}",
+      "sandbox": {
+        "mode": "off"
+      }
+    }
+  },
+  "tools": {
+    "web": {
+      "search": { "enabled": true },
+      "fetch": { "enabled": true }
+    },
+    "browser": {
+      "enabled": true
+    }
+  },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "token": { "source": "env", "id": "DISCORD_BOT_TOKEN" },
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist"
+    }
+  }
+}
