@@ -23,7 +23,16 @@
     "defaults": {
       "model": "azure/${AZURE_OPENAI_DEPLOYMENT}",
       "sandbox": {
-        "mode": "off"
+        "mode": "all",
+        "backend": "docker",
+        "scope": "session",
+        "workspaceAccess": "rw",
+        "docker": {
+          "image": "openclaw-sandbox:bookworm-slim",
+          "network": "none",
+          "readOnlyRoot": true,
+          "capDrop": ["ALL"]
+        }
       }
     }
   },
