@@ -1,11 +1,13 @@
 {
   "gateway": {
+    "mode": "local",
     "port": 18789,
-    "bind": "loopback",
+    "bind": "lan",
     "auth": {
       "mode": "token",
       "token": {
         "source": "env",
+        "provider": "default",
         "id": "OPENCLAW_GATEWAY_TOKEN"
       }
     }
@@ -13,9 +15,27 @@
   "models": {
     "providers": {
       "azure": {
-        "apiKey": { "source": "env", "id": "AZURE_OPENAI_API_KEY" },
         "baseUrl": "${AZURE_OPENAI_ENDPOINT}",
-        "apiVersion": "${AZURE_OPENAI_API_VERSION}"
+        "apiKey": {
+          "source": "env",
+          "provider": "default",
+          "id": "AZURE_OPENAI_API_KEY"
+        },
+        "api": "azure-openai-responses",
+        "models": [
+          {
+            "id": "gpt-4o",
+            "name": "gpt-4o",
+            "contextWindow": 128000,
+            "maxTokens": 16384
+          },
+          {
+            "id": "gpt-4o-mini",
+            "name": "gpt-4o-mini",
+            "contextWindow": 128000,
+            "maxTokens": 16384
+          }
+        ]
       }
     }
   },
@@ -37,20 +57,25 @@
     }
   },
   "tools": {
-    "web": {
-      "search": { "enabled": true },
-      "fetch": { "enabled": true }
-    },
-    "browser": {
-      "enabled": true
-    }
+    "profile": "coding"
   },
   "channels": {
     "discord": {
       "enabled": true,
-      "token": { "source": "env", "id": "DISCORD_BOT_TOKEN" },
+      "token": {
+        "source": "env",
+        "provider": "default",
+        "id": "DISCORD_BOT_TOKEN"
+      },
       "dmPolicy": "pairing",
       "groupPolicy": "allowlist"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "discord": {
+        "enabled": true
+      }
     }
   }
 }

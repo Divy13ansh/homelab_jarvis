@@ -2,7 +2,32 @@
 set -euo pipefail
 
 PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
-GATEWAY_ARGS=(gateway --port "${PORT}" --bind loopback)
+CFG_DIR="/home/node/.openclaw"
+CFG_FILE="${CFG_DIR}/openclaw.json"
+CFG_DIST="${CFG_DIR}/openclaw.json.dist"
+
+mkdir -p "${CFG_DIR}"
+
+if [ ! -f "${CFG_FILE}" ] || ! grep -q '"mode"' "${CFG_FILE}" 2>/dev/null; then
+  echo "[entrypoint] seeding ${CFG_FILE} from dist"
+  if [ -f "${CFG_DIST}" ]; then
+    cp "${CFG_DIST}" "${CFG_FILE}"
+  elif [ -f /app/config/openclaw.json ]; then
+    cp /app/config/openclaw.json "${CFG_FILE}"
+  fi
+fi
+
+if ! grep -q '"mode"' "${CFG_FILE}" 2>/dev/null; then
+  echo "[entrypoint] patching gateway.mode=local into ${CFG_FILE}"
+  if command -v jq >/dev/null 2>&1; then
+    tmp=$(mktemp)
+    jq '.gateway.mode = "local"' "${CFG_FILE}" > "$tmp" && mv "$tmp" "${CFG_FILE}"
+  else
+    python3 -c "import json,pathlib; p=pathlib.Path('${CFG_FILE}'); d=json.loads(p.read_text()); d.setdefault('gateway',{})['mode']='local'; p.write_text(json.dumps(d,indent=2))"
+  fi
+fi
+
+GATEWAY_ARGS=(gateway --port "${PORT}" --bind lan)
 
 if [ -n "${OPENCLAW_GATEWAY_TOKEN:-}" ]; then
   GATEWAY_ARGS+=(--token "${OPENCLAW_GATEWAY_TOKEN}")
