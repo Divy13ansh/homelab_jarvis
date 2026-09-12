@@ -42,7 +42,12 @@ Edit `config/openclaw.json` (currently `mode: off` for bootstrap). For coding ph
 - `scope: session` — one container per session, survives multiple tool calls.
 - `workspaceAccess: rw` — sandbox mounts `/workspace` rw; `/data/projects` via binds if needed.
 
-Compose already mounts `/var/run/docker.sock` for this.
+Compose already mounts `/var/run/docker.sock` for this. Build the sandbox image once on the host:
+
+```bash
+./scripts/setup-sandbox.sh   # builds openclaw-sandbox:bookworm-slim (debian + python3)
+docker images | grep sandbox
+```
 
 ### Workspace
 
