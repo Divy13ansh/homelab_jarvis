@@ -4,10 +4,13 @@ FROM ${OPENCLAW_IMAGE}
 USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    tini curl jq git python3 python3-pip pandoc wkhtmltopdf \
+    tini curl jq git python3 python3-pip pandoc wkhtmltopdf docker.io \
   && rm -rf /var/lib/apt/lists/* \
   && pip3 install --no-cache-dir --break-system-packages \
-    python-docx==1.1.2 weasyprint==62.3 reportlab==4.4.1
+    python-docx==1.1.2 weasyprint==62.3 reportlab==4.4.1 \
+  && (getent group 987 >/dev/null || groupadd -g 987 hostdocker) \
+  && groupadd -f docker \
+  && usermod -aG docker,hostdocker node
 
 COPY voice/requirements.txt /tmp/voice-requirements.txt
 RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/voice-requirements.txt 2>&1 | tail -n 20 || echo "voice deps optional"
