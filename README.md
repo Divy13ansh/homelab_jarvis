@@ -26,7 +26,7 @@ See `docs/` for What/Why/How per component.
 - **Runtime:** Docker + `ghcr.io/openclaw/openclaw:latest-browser`
 - **LLM:** Azure OpenAI
 - **Voice:** LiveKit Cloud (solves CGNAT/client isolation) + `livekit-agents` bridge
-- **Tunnel:** `cloudflared` → `jarvis.divy13ansh.in`
+- **Tunnel:** host-wide `cloudflared` (`homelab`) → `jarvis.divy13ansh.in` (add hostname → `http://127.0.0.1:18789`, no sidecar)
 - **Channels:** Discord (`@openclaw/discord`)
 - **Music:** Spotify
 

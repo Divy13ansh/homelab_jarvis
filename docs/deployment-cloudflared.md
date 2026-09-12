@@ -2,28 +2,26 @@
 
 ## What
 
-`cloudflared` tunnel `homelab` exposes Gateway via `https://jarvis.divy13ansh.in` without opening homelab ports. Gateway itself binds `127.0.0.1:18789` only.
+`cloudflared` tunnel `homelab` exposes Gateway via `https://jarvis.divy13ansh.in` without opening homelab ports. Gateway binds `127.0.0.1:18789` only.
 
 ## Why
 
-CGNAT + client isolation → no public IP/port-forward. Tunnel is outbound 443/TCP, traverses NAT. Safer than exposing Gateway.
+CGNAT + client isolation → no public IP/port-forward. Tunnel is outbound 443/TCP, traverses NAT. Safer than exposing Gateway. Your whole machine is already tunneled, so any service is exposed by adding a hostname.
 
 ## How
 
-### 1. Create tunnel
+### Host-wide tunnel (your setup)
 
-- Cloudflare Zero Trust → Networks → Tunnels → Create → `homelab` → copy `CLOUDFLARED_TUNNEL_TOKEN` → `.env`
-- Or `cloudflared tunnel create homelab` → credentials file → token.
+Your machine is already running `cloudflared` for the `homelab` tunnel. No sidecar needed in compose.
 
-### 2. Public hostname
+1. Cloudflare Zero Trust → Networks → Tunnels → `homelab` → Public Hostnames → Add:
+   - `jarvis.divy13ansh.in` → `http://127.0.0.1:18789`
+2. DNS `jarvis` CNAME auto-creates → `*.cfargotunnel.com`.
+3. `docker compose up -d jarvis` — that's it. Add any future port the same way.
 
-Zero Trust → Tunnels → `homelab` → Public Hostnames → Add:
+### Sidecar mode (portable, not used on this host)
 
-- `jarvis.divy13ansh.in` → `http://jarvis:18789` (or `http://127.0.0.1:18789` if cloudflared in same network namespace — compose uses `network_mode: service:jarvis` so `http://127.0.0.1:18789` works)
-
-DNS `jarvis` CNAME auto-created → `*.cfargotunnel.com`.
-
-### 3. Compose
+If deploying where host isn't tunneled, add back:
 
 ```yaml
 services:
@@ -32,20 +30,16 @@ services:
     command: tunnel run --token ${CLOUDFLARED_TUNNEL_TOKEN}
     depends_on: [jarvis]
     network_mode: service:jarvis
-    restart: unless-stopped
 ```
 
-Gateway must be `bind: loopback` + `auth: token`. Never `bind: lan` with tunnel.
+### Cloudflare Access (recommended)
 
-### 4. Cloudflare Access (recommended)
+Zero Trust → Access → Applications → Add → `jarvis.divy13ansh.in` → allow `Emails: you@divy13ansh.in` → plus still require `OPENCLAW_GATEWAY_TOKEN`.
 
-Zero Trust → Access → Applications → Add → `jarvis.divy13ansh.in` → allow `Emails: you@example.com` or `Emails ending in: divy13ansh.in` → plus still require `OPENCLAW_GATEWAY_TOKEN` for API.
-
-### 5. Verify
+### Verify
 
 ```bash
-docker compose up -d
-docker compose logs -f cloudflared  # "Registered tunnel connection"
+docker compose up -d jarvis
 curl -fsS http://127.0.0.1:18789/healthz
 curl -fsS -H "Authorization: Bearer $OPENCLAW_GATEWAY_TOKEN" https://jarvis.divy13ansh.in/healthz
 ```

@@ -34,15 +34,6 @@ services:
       - NET_RAW
       - NET_ADMIN
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel run --token ${CLOUDFLARED_TUNNEL_TOKEN}
-    depends_on:
-      jarvis:
-        condition: service_healthy
-    network_mode: service:jarvis
-
   livekit:
     image: livekit/livekit-server:latest
     command: --config /etc/livekit.yaml
