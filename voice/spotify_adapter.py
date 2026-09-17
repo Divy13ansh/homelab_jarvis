@@ -81,8 +81,12 @@ def cmd_auth(args):
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
-            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            code_holder["code"] = qs.get("code", [None])[0]
+            parsed = urllib.parse.urlparse(self.path)
+            qs = urllib.parse.parse_qs(parsed.query)
+            code = qs.get("code", [None])[0]
+            print(f"hit: path={parsed.path} has_code={bool(code)} from={self.client_address[0]}", flush=True)
+            if code:
+                code_holder["code"] = code
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"Authorized. You can close this window.")
