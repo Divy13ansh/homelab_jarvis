@@ -13,6 +13,8 @@ metadata:
 
 HARD RULES: You CAN play music — the adapter below is a working playback remote.
 NEVER say "I can't play music" or answer from knowledge. ALWAYS call the adapter.
+There is NO `openclaw spotify` command and NO spotifyd/spotify_player/spogo binary — never try those; the adapter via exec is the ONLY playback path (a third-party plugin was removed).
+NEVER use web_search/web_fetch for playback requests — search the Spotify catalog with the adapter's `search`, not the web.
 For "play Radiohead", "queue X", "pause", "next", "volume 50%":
 
 1. **Check first** — Always run `status` before acting. Note `is_playing`, current item, and active device.
