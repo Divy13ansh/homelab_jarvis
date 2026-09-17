@@ -19,10 +19,12 @@ No OpenClaw built-in music streaming; we use hierarchy level 4 (tiny adapter), n
 ### 2. Authenticate
 
 ```bash
-docker compose run --rm -p 8888:8888 jarvis python3 /app/voice/spotify_adapter.py auth
-# NOTE: no --env-file flag on `run` (it doesn't exist); the service already
-# loads .env via `env_file:` in compose. Top-level alternative:
-# docker compose --env-file .env run --rm -p 8888:8888 jarvis ...
+docker exec -it jarvis-jarvis-1 python3 /app/voice/spotify_adapter.py auth
+# Preferred: the running container already publishes 127.0.0.1:8888, so auth
+# runs in place. Do NOT use `docker compose run -p 8888:8888 …` while jarvis
+# is up — the host port is already allocated and the run container fails to
+# create. (If jarvis is stopped, that form works as a fallback. There is no
+# --env-file flag on `run`; the service loads .env via `env_file:` anyway.)
 # opens browser → authorize → callback to 127.0.0.1:8888 → saves /home/node/.openclaw/spotify.json (refresh token)
 # token auto-refreshes on each call
 ```
