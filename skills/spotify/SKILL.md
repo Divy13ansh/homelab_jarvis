@@ -15,8 +15,10 @@ HARD RULES: You CAN play music — the adapter below is a working playback remot
 NEVER say "I can't play music" or answer from knowledge. ALWAYS call the adapter.
 For "play Radiohead", "queue X", "pause", "next", "volume 50%":
 
-1. **Resolve** — If track/artist ambiguous, `web_search` for disambiguation, then use `exec` to call `python3 /app/voice/spotify_adapter.py search --query "<query>"`.
-2. **Control** — Call adapter:
+1. **Check first** — Always run `status` before acting. Note `is_playing`, current item, and active device.
+2. **Don't hijack** — If something is already playing and the user did NOT say "now", "interrupt", or "switch": `search` the request, then `queue --uri` it (adds to up-next, current music keeps playing) and say it's queued. Only `play` (replace) when idle or explicitly asked to switch.
+3. **Resolve** — If track/artist ambiguous, `web_search` for disambiguation, then `exec`: `python3 /app/voice/spotify_adapter.py search --query "<query>"`. Use the real URI from search results — never invent one.
+4. **Control** — Call adapter:
    - `python3 /app/voice/spotify_adapter.py devices` (list; `*` = active)
    - If `play` fails with NO_ACTIVE_DEVICE: `python3 /app/voice/spotify_adapter.py transfer --device "<name>"`, then retry play.
    - `python3 /app/voice/spotify_adapter.py play --query "<query>" [--device <name>]`
@@ -24,5 +26,5 @@ For "play Radiohead", "queue X", "pause", "next", "volume 50%":
    - `python3 /app/voice/spotify_adapter.py pause|next|prev|volume --value 50`
    - `python3 /app/voice/spotify_adapter.py status`
 3. **Auth** — Adapter handles OAuth token refresh from `/home/node/.openclaw/spotify.json` (refresh token). If not authenticated, instruct user to run `python3 /app/voice/spotify_adapter.py auth` and follow URL.
-4. **Verify (mandatory)** — After `play`, run `status` and check real state. Only say "playing X" if the player reports `is_playing:true` on that track. If NO_ACTIVE_DEVICE: `transfer --device "<name>"`, retry play, re-check status.
+4. **Verify (mandatory)** — After `play`, run `status` and check real state. Only say "playing X" if the player reports `is_playing:true` on that track. If NO_ACTIVE_DEVICE: `transfer --device "<name>"`, retry play, re-check status. If `play` returns ok but `status` still shows `is_playing:false` / `item:null` after one retry: stop, report honestly that the app accepted the command but isn't rendering audio — the desktop app is asleep and needs one manual play press in the Spotify app, then API control works.
 5. **Confirm** — Report what started playing, device, and queue state. Do not build a music service; adapter is tiny wrapper over Web API.
