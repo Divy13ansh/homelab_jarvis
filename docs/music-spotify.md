@@ -51,3 +51,7 @@ Jarvis: spotify_adapter play --query "Radiohead" → "Playing Radiohead — Cree
 - **No active device:** Open Spotify on a device first (phone/speaker). Adapter can target by `--device`.
 - **Token expired:** adapter refreshes via `refresh_token`; if `spotify.json` deleted, re-run `auth`.
 - **Premium required:** playback control requires Spotify Premium.
+- **`not authenticated. run: ... auth`:** token file `/home/node/.openclaw/spotify.json` missing. Run the `auth` command above; the `127.0.0.1:8888:8888` port mapping in compose must be live (`docker port jarvis-jarvis-1` should list it) or the OAuth callback never arrives.
+- **Redirect URI mismatch:** Spotify dashboard app redirect URI must exactly equal `SPOTIFY_REDIRECT_URI` (`http://127.0.0.1:8888/callback`). Recheck for trailing slashes.
+- **Skill not loading:** `skills/spotify/SKILL.md` must exist on host; compose mounts `./skills` to `/home/node/.openclaw/skills` and `/workspace/skills`. Verify with `docker exec jarvis-jarvis-1 ls /home/node/.openclaw/skills/spotify/`. Do NOT add a `spotify` entry under `plugins.entries` in `openclaw.json` — there is no official plugin; Spotify is skill + adapter only.
+- **openclaw CLI missing in container:** by design. Use `docker exec jarvis-jarvis-1 node dist/index.js …` or `docker compose run --rm jarvis …` instead.

@@ -52,6 +52,14 @@ docker compose down && docker compose up -d  # recreate safe, volumes persist
 | Tunnel not registered | `CLOUDFLARED_TUNNEL_TOKEN`, Zero Trust hostname `jarvis.divy13ansh.in → http://jarvis:18789` |
 | LiveKit no audio | Cloud project keys, Gateway `/v1` reachable, CGNAT requires Cloud (not self-hosted) |
 
+### Host control scope
+
+OpenClaw runs as operator with `agents.defaults.sandbox.mode=off` for the main session, so it can `exec`, read/write files, manage Docker via `/var/run/docker.sock`, and reach bind-mounted `./data/*`. The container is disposable; pairing/auth/session state persists in the `openclaw-data` volume. Do NOT wipe the volume to fix config — patch the live config (`docker exec … python3` JSON edit) and `docker compose up -d` (recreate) instead, so pairing survives.
+
+### Confirmation policy
+
+Require approval before: deleting data outside `./data`, stopping/removing non-jarvis containers, host shutdown/reboot, publishing to public URLs, pushing destructive git changes, sending sensitive files off-host. Normal ops (search, clone, build/test in sandbox, Spotify control, Discord replies) run without confirmation.
+
 ### Secrets rotation
 
 Update `.env`, `docker compose up -d`, re-pair if channel token changed. Never commit `.env`.
