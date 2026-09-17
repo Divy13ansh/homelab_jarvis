@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import httpx
-from livekit.agents import Agent, AgentServer, AgentSession, inference, room_io
+from livekit.agents import Agent, AgentServer, AgentSession, APIConnectOptions, inference, room_io
+from livekit.agents.voice.agent_session import SessionConnectOptions
 from livekit.plugins import openai, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
@@ -48,6 +49,9 @@ async def entrypoint(ctx):
 
     vad = silero.VAD.load()
 
+    # Inference proxy defaults to a 10s total timeout, which kills any
+    # multi-round tool turn (each gateway round takes seconds). Generous
+    # budget; session-level recovery handles genuine failures.
     session = AgentSession(
         stt=inference.STT(model="deepgram/nova-3", language="multi"),
         llm=gateway_llm,
@@ -55,6 +59,9 @@ async def entrypoint(ctx):
         vad=vad,
         turn_detection=MultilingualModel(),
         preemptive_generation=True,
+        conn_options=SessionConnectOptions(
+            llm_conn_options=APIConnectOptions(timeout=180.0),
+        ),
     )
 
     room_id = getattr(ctx.room, "name", "unknown")
