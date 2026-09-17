@@ -1,6 +1,6 @@
 ---
 name: spotify
-description: Control Spotify playback (search, play, queue, pause, next, volume) via Web API adapter
+description: MUST USE whenever the user asks to play, pause, skip, queue, or control music on Spotify. You CAN control playback via the Web API adapter — never answer from knowledge and never say you cannot play music.
 user-invocable: true
 disable-model-invocation: false
 metadata:
@@ -11,6 +11,8 @@ metadata:
 
 # Spotify
 
+HARD RULES: You CAN play music — the adapter below is a working playback remote.
+NEVER say "I can't play music" or answer from knowledge. ALWAYS call the adapter.
 For "play Radiohead", "queue X", "pause", "next", "volume 50%":
 
 1. **Resolve** — If track/artist ambiguous, `web_search` for disambiguation, then use `exec` to call `python3 /app/voice/spotify_adapter.py search --query "<query>"`.
@@ -22,4 +24,5 @@ For "play Radiohead", "queue X", "pause", "next", "volume 50%":
    - `python3 /app/voice/spotify_adapter.py pause|next|prev|volume --value 50`
    - `python3 /app/voice/spotify_adapter.py status`
 3. **Auth** — Adapter handles OAuth token refresh from `/home/node/.openclaw/spotify.json` (refresh token). If not authenticated, instruct user to run `python3 /app/voice/spotify_adapter.py auth` and follow URL.
-4. **Confirm** — Report what started playing, device, and queue state. Do not build a music service; adapter is tiny wrapper over Web API.
+4. **Verify (mandatory)** — After `play`, run `status` and check real state. Only say "playing X" if the player reports `is_playing:true` on that track. If NO_ACTIVE_DEVICE: `transfer --device "<name>"`, retry play, re-check status.
+5. **Confirm** — Report what started playing, device, and queue state. Do not build a music service; adapter is tiny wrapper over Web API.
