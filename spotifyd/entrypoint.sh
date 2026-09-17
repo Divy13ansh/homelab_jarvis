@@ -4,7 +4,10 @@ set -euo pipefail
 # Unmute + sane level on card 0 (ALSA boots muted on many boards).
 amixer -c 0 set Master unmute >/dev/null 2>&1 || true
 amixer -c 0 set PCM unmute >/dev/null 2>&1 || true
-amixer -c 0 set Master "${SPOTIFYD_INITIAL_VOLUME:-80}%" >/dev/null 2>&1 || true
+amixer -c 0 set Master 90% unmute >/dev/null 2>&1 || true
+# Auto-Mute silences speakers on phantom jack-detect; this box has no
+# headphones attached, so keep it off.
+amixer -c 0 set 'Auto-Mute Mode' Disabled >/dev/null 2>&1 || true
 
 CONF="/tmp/spotifyd.conf"
 {
