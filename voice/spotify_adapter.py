@@ -128,14 +128,34 @@ def cmd_search(args):
     for t in j.get("tracks", {}).get("items", []):
         print(f"{t['name']} — {', '.join(a['name'] for a in t['artists'])} [{t['uri']}]")
 
+def resolve_device(tok, name):
+    devs = api("GET", "/me/player/devices", tok).get("devices", [])
+    if not name:
+        return devs, None
+    match = next((d for d in devs if name.lower() in d["name"].lower()), None)
+    if not match:
+        print(f"device not found: {name!r}", file=sys.stderr)
+        sys.exit(1)
+    return devs, match
+
+def cmd_devices(args):
+    tok = ensure_token()
+    devs, _ = resolve_device(tok, None)
+    for d in devs:
+        print(f"{'*' if d.get('is_active') else ' '} {d['name']} [{d['type']}] id={d['id']}")
+
+def cmd_transfer(args):
+    tok = ensure_token()
+    _, match = resolve_device(tok, args.device)
+    api("PUT", "/me/player", tok, body={"device_ids": [match["id"]], "play": False})
+    print(f"transferred to {match['name']}")
+
 def cmd_play(args):
     tok = ensure_token()
     params = {}
     if args.device:
-        devs = api("GET", "/me/player/devices", tok)
-        match = next((d for d in devs.get("devices", []) if args.device.lower() in d["name"].lower()), None)
-        if match:
-            params["device_id"] = match["id"]
+        _, match = resolve_device(tok, args.device)
+        params["device_id"] = match["id"]
     if args.uri:
         body = {"uris": [args.uri]}
     elif args.query:
@@ -183,6 +203,8 @@ def main():
         sub.add_parser(c)
     v = sub.add_parser("volume"); v.add_argument("--value", required=True)
     q = sub.add_parser("queue"); q.add_argument("--uri", required=True)
+    sub.add_parser("devices")
+    t = sub.add_parser("transfer"); t.add_argument("--device", required=True)
     args = p.parse_args()
     if args.cmd == "auth":
         cmd_auth(args)
@@ -190,6 +212,10 @@ def main():
         cmd_search(args)
     elif args.cmd == "play":
         cmd_play(args)
+    elif args.cmd == "devices":
+        cmd_devices(args)
+    elif args.cmd == "transfer":
+        cmd_transfer(args)
     else:
         cmd_simple(args.cmd, args)
 

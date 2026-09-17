@@ -15,6 +15,8 @@ For "play Radiohead", "queue X", "pause", "next", "volume 50%":
 
 1. **Resolve** — If track/artist ambiguous, `web_search` for disambiguation, then use `exec` to call `python3 /app/voice/spotify_adapter.py search --query "<query>"`.
 2. **Control** — Call adapter:
+   - `python3 /app/voice/spotify_adapter.py devices` (list; `*` = active)
+   - If `play` fails with NO_ACTIVE_DEVICE: `python3 /app/voice/spotify_adapter.py transfer --device "<name>"`, then retry play.
    - `python3 /app/voice/spotify_adapter.py play --query "<query>" [--device <name>]`
    - `python3 /app/voice/spotify_adapter.py queue --uri <spotify:track:...>`
    - `python3 /app/voice/spotify_adapter.py pause|next|prev|volume --value 50`
