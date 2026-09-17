@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import asyncio
 import logging
 import os
 
@@ -27,7 +26,7 @@ class JarvisAgent(Agent):
             "For long tasks say 'On it' then continue in background via chat."
         ))
 
-server = AgentServer()
+server = AgentServer(multiprocessing_context="spawn")
 
 @server.rtc_session(agent_name="jarvis")
 async def entrypoint(ctx):

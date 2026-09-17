@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import http.server
 import json
 import os
 import pathlib
@@ -7,7 +8,6 @@ import sys
 import time
 import urllib.parse
 import urllib.request
-import http.server
 import webbrowser
 
 TOKEN_FILE = pathlib.Path(os.environ.get("SPOTIFY_TOKEN_FILE", "/home/node/.openclaw/spotify.json"))
@@ -32,19 +32,20 @@ def ensure_token():
     if not tok:
         print(f"not authenticated. run: python3 {sys.argv[0]} auth", file=sys.stderr)
         sys.exit(3)
-    if tok.get("expires_in") and tok.get("obtained_at"):
-        if time.time() > tok["obtained_at"] + tok["expires_in"] - 60:
-            data = urllib.parse.urlencode({
-                "grant_type": "refresh_token",
-                "refresh_token": tok["refresh_token"],
-                "client_id": os.environ["SPOTIFY_CLIENT_ID"],
-                "client_secret": os.environ["SPOTIFY_CLIENT_SECRET"],
-            }).encode()
-            req = urllib.request.Request(TOKEN_URL, data=data)
-            with urllib.request.urlopen(req) as r:
-                j = json.loads(r.read().decode())
-            tok.update(j)
-            save_token(tok)
+    if tok.get("expires_in") and tok.get("obtained_at") and (
+        time.time() > tok["obtained_at"] + tok["expires_in"] - 60
+    ):
+        data = urllib.parse.urlencode({
+            "grant_type": "refresh_token",
+            "refresh_token": tok["refresh_token"],
+            "client_id": os.environ["SPOTIFY_CLIENT_ID"],
+            "client_secret": os.environ["SPOTIFY_CLIENT_SECRET"],
+        }).encode()
+        req = urllib.request.Request(TOKEN_URL, data=data)
+        with urllib.request.urlopen(req) as r:
+            j = json.loads(r.read().decode())
+        tok.update(j)
+        save_token(tok)
     return tok["access_token"]
 
 def api(method, path, token, body=None, params=None):
@@ -74,7 +75,7 @@ def cmd_auth(args):
     print(f"Open: {url}")
     try:
         webbrowser.open(url)
-    except Exception:
+    except OSError:
         pass
     code_holder = {}
 

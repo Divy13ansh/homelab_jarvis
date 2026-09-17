@@ -18,18 +18,25 @@
         "provider": "default",
         "id": "OPENCLAW_GATEWAY_TOKEN"
       }
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        }
+      }
     }
   },
   "models": {
     "providers": {
       "azure": {
-        "baseUrl": "${AZURE_OPENAI_ENDPOINT}",
+        "baseUrl": "${AZURE_OPENAI_ENDPOINT}openai/v1",
         "apiKey": {
           "source": "env",
           "provider": "default",
           "id": "AZURE_OPENAI_API_KEY"
         },
-        "api": "azure-openai-responses",
+        "api": "openai-completions",
         "models": [
           {
             "id": "gpt-4o",
@@ -42,6 +49,12 @@
             "name": "gpt-4o-mini",
             "contextWindow": 128000,
             "maxTokens": 16384
+          },
+          {
+            "id": "gpt-5.4-mini",
+            "name": "gpt-5.4-mini",
+            "contextWindow": 400000,
+            "maxTokens": 16384
           }
         ]
       }
@@ -51,7 +64,7 @@
     "defaults": {
       "model": "azure/${AZURE_OPENAI_DEPLOYMENT}",
       "sandbox": {
-        "mode": "all",
+        "mode": "off",
         "backend": "docker",
         "scope": "session",
         "workspaceAccess": "rw",
@@ -65,7 +78,8 @@
     }
   },
   "tools": {
-    "profile": "coding"
+    "profile": "coding",
+    "alsoAllow": ["message"]
   },
   "channels": {
     "discord": {

@@ -3,6 +3,7 @@ import argparse
 import pathlib
 import sys
 
+
 def convert(md_path: pathlib.Path, fmt: str, out: pathlib.Path | None) -> pathlib.Path:
     text = md_path.read_text(encoding="utf-8")
     if out is None:
@@ -21,8 +22,8 @@ def convert(md_path: pathlib.Path, fmt: str, out: pathlib.Path | None) -> pathli
         except ImportError:
             try:
                 from reportlab.lib.pagesizes import A4
-                from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
                 from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
                 styles = getSampleStyleSheet()
                 doc = SimpleDocTemplate(str(out), pagesize=A4, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
                 story = []
