@@ -150,6 +150,19 @@ def cmd_transfer(args):
     api("PUT", "/me/player", tok, body={"device_ids": [match["id"]], "play": False})
     print(f"transferred to {match['name']}")
 
+def track_with_album(tok, uri=None, query=None):
+    if query:
+        j = api("GET", "/search", tok, params={"q": query, "type": "track", "limit": "1"})
+        items = j.get("tracks", {}).get("items", [])
+        if not items:
+            print("no results", file=sys.stderr)
+            sys.exit(1)
+        t = items[0]
+    else:
+        tid = uri.split(":")[-1].split("?")[0]
+        t = api("GET", f"/tracks/{tid}", tok)
+    return t["uri"], (t.get("album") or {}).get("uri"), t["name"], t["artists"][0]["name"]
+
 def cmd_play(args):
     tok = ensure_token()
     params = {}
@@ -157,15 +170,19 @@ def cmd_play(args):
         _, match = resolve_device(tok, args.device)
         params["device_id"] = match["id"]
     if args.uri:
-        body = {"uris": [args.uri]}
+        # NOTE: bare `uris` playback returns 204 but some clients never start
+        # audio. Album-context playback actually streams — always prefer it.
+        uri, album_uri, name, artist = track_with_album(tok, uri=args.uri)
+        print(f"playing: {name} — {artist}")
     elif args.query:
-        j = api("GET", "/search", tok, params={"q": args.query, "type": "track", "limit": "1"})
-        items = j.get("tracks", {}).get("items", [])
-        if not items:
-            print("no results", file=sys.stderr)
-            sys.exit(1)
-        body = {"uris": [items[0]["uri"]]}
-        print(f"playing: {items[0]['name']} — {items[0]['artists'][0]['name']}")
+        uri, album_uri, name, artist = track_with_album(tok, query=args.query)
+        print(f"playing: {name} — {artist}")
+    else:
+        uri, album_uri = None, None
+    if album_uri:
+        body = {"context_uri": album_uri, "offset": {"uri": uri}}
+    elif args.uri:
+        body = {"uris": [args.uri]}
     else:
         body = None
     api("PUT", "/me/player/play", tok, body=body, params=params or None)
