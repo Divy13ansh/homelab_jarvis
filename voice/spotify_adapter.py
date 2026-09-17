@@ -91,13 +91,15 @@ def cmd_auth(args):
 
     parsed = urllib.parse.urlparse(redir)
     port = parsed.port or 8888
+    deadline = time.time() + 600
     with http.server.HTTPServer(("127.0.0.1", port), Handler) as httpd:
         print(f"Waiting for callback on {redir} ...")
-        httpd.timeout = 120
-        httpd.handle_request()
+        while not code_holder.get("code") and time.time() < deadline:
+            httpd.timeout = max(1, min(30, int(deadline - time.time())))
+            httpd.handle_request()
     code = code_holder.get("code")
     if not code:
-        print("no code received", file=sys.stderr)
+        print("no code received (timed out after 10 min)", file=sys.stderr)
         sys.exit(1)
     data = urllib.parse.urlencode({
         "grant_type": "authorization_code",
