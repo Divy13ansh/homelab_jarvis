@@ -96,7 +96,11 @@ def cmd_auth(args):
     parsed = urllib.parse.urlparse(redir)
     port = parsed.port or 8888
     deadline = time.time() + 600
-    with http.server.HTTPServer(("127.0.0.1", port), Handler) as httpd:
+    # NOTE: bind 0.0.0.0, not 127.0.0.1 — inside Docker, published ports arrive
+    # via the container's eth0, which a loopback-bound server never sees
+    # (docker-proxy accepts then drops → ERR_EMPTY_RESPONSE). Host exposure
+    # is still loopback-only via the 127.0.0.1:8888 publish mapping.
+    with http.server.HTTPServer(("0.0.0.0", port), Handler) as httpd:
         print(f"Waiting for callback on {redir} ...")
         while not code_holder.get("code") and time.time() < deadline:
             httpd.timeout = max(1, min(30, int(deadline - time.time())))
