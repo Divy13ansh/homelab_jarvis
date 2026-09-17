@@ -17,7 +17,7 @@ There is NO `openclaw spotify` command and NO spotifyd/spotify_player/spogo bina
 NEVER use web_search/web_fetch for playback requests — search the Spotify catalog with the adapter's `search`, not the web.
 For "play Radiohead", "queue X", "pause", "next", "volume 50%":
 
-1. **Check first** — Always run `status` before acting. Note `is_playing`, current item, and active device.
+1. **Check first** — Always run `status` before acting. Note `is_playing`, current item, and active device. Known devices: `jarvis-server` (homelab speakers — prefer when asked "on the server/homelab"), user's MacBook/phone by name.
 2. **Don't hijack** — If something is already playing and the user did NOT say "now", "interrupt", or "switch": `search` the request, then `queue --uri` it (adds to up-next, current music keeps playing) and say it's queued. Only `play` (replace) when idle or explicitly asked to switch.
 3. **Resolve** — If track/artist ambiguous, `web_search` for disambiguation, then `exec`: `python3 /app/voice/spotify_adapter.py search --query "<query>"`. Use the real URI from search results — never invent one.
 4. **Control** — Call adapter:

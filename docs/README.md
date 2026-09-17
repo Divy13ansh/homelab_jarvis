@@ -13,6 +13,7 @@ Every component documents **What** it is, **Why** it exists, **How** to use/oper
 | `sandbox.md` | Docker sandbox modes, network policy |
 | `voice-livekit.md` | LiveKit Cloud vs self-hosted, CGNAT solution |
 | `voice-cloud-deploy.md` | Cloud-hosted agent deploy from Mac, secrets, dispatch test |
+| `music-server.md` | spotifyd sidecar, server speakers, headless OAuth |
 | `voice-bridge.md` | `livekit_agent.py` responsibilities, session mapping |
 | `music-spotify.md` | Spotify app setup, playback adapter |
 | `decisions.md` | ADRs (Azure, Cloud, Discord-first, etc.) |
