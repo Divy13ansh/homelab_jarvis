@@ -39,6 +39,29 @@ services:
       - NET_RAW
       - NET_ADMIN
 
+  spotifyd:
+    build:
+      context: ./spotifyd
+      dockerfile: Dockerfile
+      args:
+        SPOTIFYD_VERSION: ${SPOTIFYD_VERSION:-0.4.2}
+    image: jarvis-spotifyd:local
+    restart: unless-stopped
+    network_mode: host
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - "29"
+    environment:
+      SPOTIFYD_DEVICE_NAME: ${SPOTIFYD_DEVICE_NAME:-jarvis-server}
+      SPOTIFYD_ALSA_DEVICE: ${SPOTIFYD_ALSA_DEVICE:-default}
+      SPOTIFYD_MIXER: ${SPOTIFYD_MIXER:-Master}
+      SPOTIFYD_INITIAL_VOLUME: ${SPOTIFYD_INITIAL_VOLUME:-80}
+      SPOTIFYD_USERNAME: ${SPOTIFYD_USERNAME:-}
+      SPOTIFYD_PASSWORD: ${SPOTIFYD_PASSWORD:-}
+    volumes:
+      - spotifyd-cache:/cache
+
   livekit:
     image: livekit/livekit-server:latest
     command: --config /etc/livekit.yaml
@@ -56,3 +79,4 @@ services:
 
 volumes:
   openclaw-data:
+  spotifyd-cache:
