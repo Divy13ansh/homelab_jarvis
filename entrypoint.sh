@@ -17,15 +17,20 @@ if [ ! -f "${CFG_FILE}" ] || ! grep -q '"mode"' "${CFG_FILE}" 2>/dev/null; then
   fi
 fi
 
-if ! grep -q '"mode"' "${CFG_FILE}" 2>/dev/null; then
-  echo "[entrypoint] patching gateway.mode=local into ${CFG_FILE}"
-  if command -v jq >/dev/null 2>&1; then
-    tmp=$(mktemp)
-    jq '.gateway.mode = "local"' "${CFG_FILE}" > "$tmp" && mv "$tmp" "${CFG_FILE}"
-  else
-    python3 -c "import json,pathlib; p=pathlib.Path('${CFG_FILE}'); d=json.loads(p.read_text()); d.setdefault('gateway',{})['mode']='local'; p.write_text(json.dumps(d,indent=2))"
-  fi
-fi
+echo "[entrypoint] ensuring required config options in ${CFG_FILE}"
+python3 -c "
+import json, pathlib
+p = pathlib.Path('${CFG_FILE}')
+if p.exists():
+    try:
+        d = json.loads(p.read_text())
+        d.setdefault('gateway', {})['mode'] = 'local'
+        d.setdefault('gateway', {}).setdefault('http', {}).setdefault('endpoints', {})['chatCompletions'] = {'enabled': True}
+        d.setdefault('agents', {}).setdefault('defaults', {}).setdefault('sandbox', {})['mode'] = 'off'
+        p.write_text(json.dumps(d, indent=2))
+    except Exception as e:
+        print('[entrypoint] config patch error:', e)
+"
 
 GATEWAY_ARGS=(gateway --port "${PORT}" --bind lan)
 
@@ -70,8 +75,10 @@ else
 fi
 
 if [ -f /app/voice/livekit_agent.py ] && [ -n "${LIVEKIT_URL:-}" ] && [ -n "${LIVEKIT_API_KEY:-}" ]; then
+  echo "[entrypoint] ensuring LiveKit model files are present"
+  python3 -m livekit.agents download-files 2>/dev/null || true
   echo "[entrypoint] starting LiveKit bridge"
-  python3 /app/voice/livekit_agent.py &
+  python3 /app/voice/livekit_agent.py start &
   voice_pid=$!
 else
   echo "[entrypoint] LiveKit bridge disabled (missing voice/livekit_agent.py or LIVEKIT_URL/KEY)"

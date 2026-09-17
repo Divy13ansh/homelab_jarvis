@@ -20,8 +20,11 @@ services:
       - ./data/logs:/data/logs
       - /var/run/docker.sock:/var/run/docker.sock
       - ./voice:/app/voice:ro
+      - ./skills:/home/node/.openclaw/skills:ro
+      - ./skills:/workspace/skills:ro
     ports:
       - "127.0.0.1:${OPENCLAW_GATEWAY_PORT:-18789}:${OPENCLAW_GATEWAY_PORT:-18789}"
+      - "127.0.0.1:8888:8888"
     healthcheck:
       test: ["CMD", "/usr/local/bin/healthcheck.sh"]
       interval: 30s

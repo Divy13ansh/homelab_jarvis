@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && usermod -aG docker,hostdocker node
 
 COPY voice/requirements.txt /tmp/voice-requirements.txt
-RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/voice-requirements.txt 2>&1 | tail -n 20 || echo "voice deps optional"
+RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/voice-requirements.txt 2>&1 | tail -n 20 || echo "voice deps optional" \
+  && python3 -m livekit.agents download-files 2>&1 | tail -n 10 || true
 
 COPY scripts/healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY config/openclaw.json /home/node/.openclaw/openclaw.json.dist
