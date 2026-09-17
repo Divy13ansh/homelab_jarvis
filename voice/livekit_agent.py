@@ -16,7 +16,10 @@ logger = logging.getLogger("jarvis-voice")
 GATEWAY_URL = os.environ.get("OPENCLAW_GATEWAY_URL", "http://127.0.0.1:18789/v1")
 GATEWAY_TOKEN = os.environ.get("OPENCLAW_GATEWAY_TOKEN", "")
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "")
-MODEL = os.environ.get("OPENCLAW_VOICE_MODEL", "openclaw/default")
+# Gateway /v1 accepts only agent routes (`openclaw`, `openclaw/<agentId>`);
+# provider ids (e.g. azure/...) get a 400. The route resolves to the
+# default agent model server-side.
+MODEL = os.environ.get("OPENCLAW_VOICE_MODEL", "openclaw")
 
 class JarvisAgent(Agent):
     def __init__(self):

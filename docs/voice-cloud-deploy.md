@@ -25,7 +25,7 @@ Build source is `voice/Dockerfile` (python:3.12-slim + `requirements.txt` + `liv
 |---|---|
 | `OPENCLAW_GATEWAY_URL` | `https://jarvis.divy13ansh.in/v1` |
 | `OPENCLAW_GATEWAY_TOKEN` | same as homelab `.env` |
-| `OPENCLAW_VOICE_MODEL` | `azure/gpt-5.4-mini` (verified working via `openai-completions`; `openclaw/default` untested — prefer this) |
+| `OPENCLAW_VOICE_MODEL` | `openclaw` (gateway agent route — verified. Gateway `/v1` rejects provider ids like `azure/gpt-5.4-mini` with 400; the route resolves to the default agent model server-side) |
 | `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | from Cloud project settings |
 
 Then deploy (`lk deploy` or dashboard Deploy — confirm exact subcommand with `lk --help` on the Mac).
