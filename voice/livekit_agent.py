@@ -6,9 +6,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import httpx
 from livekit.agents import Agent, AgentServer, AgentSession, inference, room_io
 from livekit.plugins import openai, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+
+# Default client uses read=5s, which kills streamed multi-round agent turns
+# (each gateway round takes seconds; music turns chain 4+). Generous limits;
+# session-level recovery handles genuine failures.
+LLM_TIMEOUT = httpx.Timeout(connect=15.0, read=120.0, write=30.0, pool=15.0)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("jarvis-voice")
@@ -37,6 +43,7 @@ async def entrypoint(ctx):
         model=MODEL,
         base_url=GATEWAY_URL,
         api_key=GATEWAY_TOKEN or "not-needed",
+        timeout=LLM_TIMEOUT,
     )
 
     vad = silero.VAD.load()
@@ -60,7 +67,12 @@ async def entrypoint(ctx):
             audio_input=room_io.AudioInputOptions(noise_cancellation=None),
         ),
     )
-    await session.generate_reply(instructions="Greet the user warmly as Jarvis, briefly.")
+    # Gateway agent route 400s without at least one user message; seed a
+    # benign opener so the greeting turn is valid.
+    await session.generate_reply(
+        user_input="Hello",
+        instructions="Greet the user warmly as Jarvis, briefly.",
+    )
 
 if __name__ == "__main__":
     if not LIVEKIT_URL:
