@@ -10,8 +10,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
   && mkdir -p /out && tar -xzf /tmp/spotifyd.tgz -C /out && chmod +x /out/spotifyd
 
 FROM debian:bookworm-slim
+# ca-certificates is load-bearing: the slim binary uses system TLS roots for
+# the OAuth token exchange (without it: "Request failed" on every exchange).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libasound2 alsa-utils \
+    libasound2 alsa-utils ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
   && useradd -m -s /bin/bash spotifyd \
   && mkdir -p /cache && chown spotifyd:spotifyd /cache
