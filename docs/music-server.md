@@ -38,6 +38,16 @@ docker exec jarvis-jarvis-1 python3 /app/voice/spotify_adapter.py play --query "
 
 Discord/voice: "play X on the server" → Jarvis targets `jarvis-server`.
 
+### Driver quirk (Timi/Mi Notebook, speakers work on Windows, silent on Ubuntu)
+
+The SOF driver (`sof-audio-pci-intel-cnl`) streams perfectly (PCM RUNNING, mixers up) but the ALC256 speaker path stays silent — known quirk on this board. Fix: force the legacy HDA driver via `/etc/modprobe.d/timi-audio-fix.conf`:
+
+```
+options snd-intel-dspcfg dsp_driver=1
+```
+
+Then `sudo update-initramfs -u` and **reboot** (module option applies at load; runtime rebind was attempted and refused). Containers (`restart: unless-stopped`) come back automatically. Verify after reboot: `cat /proc/asound/cards` should show HDA-Intel instead of `sof-hda-dsp`, then `speaker-test` for a tone.
+
 ### Troubleshooting
 
 | Symptom | Check |
