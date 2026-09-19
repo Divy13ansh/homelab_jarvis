@@ -62,6 +62,38 @@ services:
     volumes:
       - spotifyd-cache:/cache
 
+  wake:
+    build:
+      context: ./wake
+      dockerfile: Dockerfile
+    image: jarvis-wake:local
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      LIVEKIT_ROOM: ${LIVEKIT_ROOM:-jarvis}
+      LIVEKIT_EARS_IDENTITY: ${LIVEKIT_EARS_IDENTITY:-jarvis-ears}
+      WAKE_SENSITIVITY: ${WAKE_SENSITIVITY:-0.5}
+      WAKE_IDLE_TIMEOUT: ${WAKE_IDLE_TIMEOUT:-12}
+      MIC_ACTIVITY_RMS: ${MIC_ACTIVITY_RMS:-400}
+      WAKE_MIC_DEVICE: ${WAKE_MIC_DEVICE:-hw:0,0}
+      WAKE_SPK_DEVICE: ${WAKE_SPK_DEVICE:-hw:0,0}
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID:-}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET:-}
+      SPOTIFY_TOKEN_FILE: /openclaw-state/spotify.json
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - "29"
+    volumes:
+      - ./voice:/app/voice:ro
+      # rw: adapter refreshes the OAuth token hourly via this file
+      - openclaw-data:/openclaw-state
+    depends_on:
+      jarvis:
+        condition: service_healthy
+    profiles: [wake]
+
   livekit:
     image: livekit/livekit-server:latest
     command: --config /etc/livekit.yaml
