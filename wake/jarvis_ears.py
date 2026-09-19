@@ -200,9 +200,18 @@ class Ears:
         for chunk, rms in self.mic_chunks():
             if not self.active:
                 scores = oww.predict(_np.frombuffer(chunk, dtype=_np.int16))
-                if scores.get("hey_jarvis", 0) >= SENSITIVITY:
-                    logger.info("wake!")
+                # NOTE: 0.6.0 keys scores by model filename (hey_jarvis_v0.1),
+                # not the bare name — exact-key lookup silently never fires.
+                score = max(
+                    (s for k, s in scores.items() if "jarvis" in k.lower()),
+                    default=0.0,
+                )
+                if score >= SENSITIVITY:
+                    logger.info("wake! score=%.2f", score)
                     asyncio.run_coroutine_threadsafe(self.wake(), asyncio.get_event_loop())
+                elif score >= 0.15:
+                    logger.info("near-miss score=%.2f (hears speech, below %.2f)",
+                                score, SENSITIVITY)
             else:
                 if rms > MIC_ACTIVITY_RMS:
                     self.last_activity = time.time()
