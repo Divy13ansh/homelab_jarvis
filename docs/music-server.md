@@ -55,4 +55,5 @@ Then `sudo update-initramfs -u` and **reboot** (module option applies at load; r
 | `devices` lacks jarvis-server | daemon running? `logs spotifyd` shows Authenticated? credentials in `/cache`? |
 | OAuth `Request failed` | `ca-certificates` in image; fresh tab; newest URL only |
 | 204 ok but `is_playing:false` | app/device asleep — same as any client; for server check `logs spotifyd` for `loaded` lines and ALSA mixer levels |
-| No sound, track loads | `amixer` levels in container; correct ALSA device (`SPOTIFYD_ALSA_DEVICE`, default uses dmix); speakers physically connected |
+| No sound, track loads | `amixer` levels in container; speakers physically connected; then suspect the resampler: test `speaker-test -D hw:0,0 -r 44100` vs `-D plughw:0,0 -r 44100` — if only direct-hw is audible, set `SPOTIFYD_ALSA_DEVICE=hw:0,0` (exclusive open, no conversion; Spotify is 44.1k natively) |
+| `hw:0,0 busy` | exclusive device — stop other audio users first; only spotifyd should open it |
