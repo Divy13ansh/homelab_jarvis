@@ -46,7 +46,7 @@ The SOF driver (`sof-audio-pci-intel-cnl`) streams perfectly (PCM RUNNING, mixer
 options snd-intel-dspcfg dsp_driver=1
 ```
 
-Then `sudo update-initramfs -u` and **reboot** (module option applies at load; runtime rebind was attempted and refused). Containers (`restart: unless-stopped`) come back automatically. Verify after reboot: `cat /proc/asound/cards` should show HDA-Intel instead of `sof-hda-dsp`, then `speaker-test` for a tone.
+Then `sudo update-initramfs -u` and **reboot** (module option applies at load; runtime rebind was attempted and refused). Containers (`restart: unless-stopped`) come back automatically. Verify after reboot: `cat /proc/asound/cards` should show HDA-Intel instead of `sof-hda-dsp`, then `speaker-test` for a tone. **Confirmed working 2026-09-19**: tone audible, Spotify streaming with `is_playing:true` on `jarvis-server`. Note the device re-registers under the same Spotify device ID after reboot (credentials persist in `spotifyd-cache`), but allow ~30s before first `play` — immediate commands fail with `device not found` until registration completes.
 
 ### Troubleshooting
 
