@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && mkdir -p /cache && chown spotifyd:spotifyd /cache
 COPY --from=fetch /out/spotifyd /usr/local/bin/spotifyd
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY asound.conf /etc/asound.conf
 RUN chmod +x /usr/local/bin/entrypoint.sh
 USER spotifyd
 VOLUME ["/cache"]
